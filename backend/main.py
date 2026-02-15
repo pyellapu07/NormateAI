@@ -61,3 +61,32 @@ async def health_check():
 async def startup():
     logger.info("🚀 Normate AI backend starting up")
     logger.info("   CORS origins: %s", ALLOWED_ORIGINS)
+
+# At the end of main.py, add:
+
+@app.on_event("startup")
+async def startup():
+    logger.info("🚀 Normate AI backend starting up")
+    logger.info("   CORS origins: %s", ALLOWED_ORIGINS)
+    
+    # DEBUG: Print all registered routes
+    logger.info("   Registered routes:")
+    for route in app.routes:
+        logger.info(f"     {route.methods} {route.path}")
+```
+
+This will show you in the Deploy Logs what routes are actually registered.
+
+---
+
+## **Most Likely Fix:**
+
+The `__init__.py` files are missing. Railway's Python environment is stricter than Windows.
+
+**Run the commands above and push!** 🚀
+
+After the redeploy, check the Deploy Logs for:
+```
+Registered routes:
+  {'POST'} /api/analyze
+  {'GET'} /health
