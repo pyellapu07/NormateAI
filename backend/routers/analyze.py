@@ -18,7 +18,7 @@ from services.claude_service import generate_recommendations
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api", tags=["analysis"])
+router = APIRouter(tags=["analysis"])
 
 # ── In-memory job store (replace with Supabase in Phase 4) ──
 
