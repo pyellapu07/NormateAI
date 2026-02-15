@@ -49,7 +49,7 @@ app.include_router(analyze_router, prefix="/api")
 # ── Health Check ─────────────────────────────────────────────
 
 
-@app.get("/api/health")
+@app.get("/health")
 async def health_check():
     return {"status": "ok", "service": "normate-ai"}
 
