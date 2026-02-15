@@ -1,0 +1,72 @@
+AGRA Bulletin Platform — User Feedback Collection
+Compiled from: Kenya Workshop (Feb 2025), Tanzania Stakeholder Emails, User Survey Responses
+==================================================================================================
+
+WORKSHOP FEEDBACK — Nairobi, February 12, 2025
+
+Participant 1 (Ministry of Agriculture, Kenya):
+The bulletin data is extremely valuable for our seasonal planning. We rely on the crop yield forecasts every quarter. However, since the March update, I cannot access the bulletins properly on my phone. The page takes very long to load and sometimes it just shows a blank screen. Most of our field officers use mobile phones, not laptops, so this is a serious problem.
+
+Participant 2 (NGO Program Manager):
+I love the new visual design, the charts look much more professional now. But the download button is impossible to find on mobile. I had to ask a colleague to send me the PDF because I could not figure out how to download it myself. On desktop everything works fine. The navigation was much simpler before.
+
+Participant 3 (County Agricultural Officer):
+The mobile experience has become very frustrating. I used to check bulletins during field visits but now the site is too slow on my phone. The loading time is unbearable, especially in areas with poor network coverage. Sometimes I wait over 30 seconds and nothing appears. We need offline access or at least faster loading.
+
+Participant 4 (Research Institute):
+The data quality is excellent and the forecasting methodology is sound. Our team uses the bulletins for cross-referencing with our own field data. The desktop version is great. However, we have noticed that some of the newer interactive charts do not render on older browsers, which some of our partner organizations still use.
+
+Participant 5 (Farmer Cooperative Leader):
+Many of our farmers try to access the bulletins on basic smartphones. The website does not work well on these devices. The text is too small, the buttons are tiny, and it takes forever to load. We need a simpler mobile version. Our farmers are giving up and asking us to print the bulletins instead, which defeats the purpose of having a digital platform.
+
+STAKEHOLDER EMAILS — Tanzania
+
+From: Regional Director, Arusha
+Subject: Bulletin Access Issues on Mobile Devices
+Date: March 5, 2025
+
+Dear Team,
+
+I want to report that our field staff in Arusha region are having significant difficulties accessing the bulletins on their mobile devices since early March. The bounce rate on mobile seems very high based on our informal tracking. Staff report that the site loads slowly, and the navigation is confusing on smaller screens. The new hamburger menu hides the download option, which is the primary reason our staff visit the site. Could you please investigate and prioritize mobile optimization? This is affecting our operational efficiency.
+
+From: Data Analyst, Dar es Salaam
+Subject: Positive feedback on data visualization improvements
+Date: February 28, 2025
+
+Hello,
+
+I wanted to share some positive feedback. The new visualization features on the desktop version are fantastic. The interactive charts make it much easier to compare crop yield trends across regions. The color coding for different crops is intuitive and the export to CSV feature works perfectly. Our team has been very impressed with these improvements. Great work on the desktop experience.
+
+From: Program Coordinator, Dodoma
+Subject: Mobile usability concerns
+Date: March 12, 2025
+
+Hi,
+
+Several of our partner organizations have raised concerns about the mobile version of the bulletin platform. Specifically, they mention that the session duration on mobile has dropped significantly because users cannot find what they need. The main complaints are about navigation being hidden behind a menu icon that many users do not recognize, and the download functionality being buried too deep in the interface. On a positive note, the content quality of the bulletins themselves has improved significantly.
+
+USER SURVEY RESPONSES (March 2025) — Free-text field: "Any additional feedback?"
+
+Response 1: "Desktop works perfectly. Mobile is broken. Please fix the mobile download experience."
+
+Response 2: "The new charts and graphs are beautiful and very informative. However, the website has become much heavier and takes too long to load, especially the mobile version."
+
+Response 3: "I appreciate the improved design but functionality should come first. The fact that I cannot easily download a bulletin on my phone means I have stopped using the platform on mobile entirely."
+
+Response 4: "Excellent agricultural data and forecasting. The bulletin content is more comprehensive than ever. Just please make it work better on phones."
+
+Response 5: "Navigation is very confusing on mobile. The old layout was simpler and more intuitive. On desktop the new layout is fine but mobile needs a complete rethink."
+
+Response 6: "We need the bulletins to load faster on mobile. Many of our team members work in rural areas with 3G or even 2G connections. The current site is unusable on slow networks."
+
+Response 7: "The color scheme and visual design improvements are appreciated. Reports look more professional now."
+
+Response 8: "Mobile engagement has definitely dropped in our organization. People have switched back to asking for email PDFs instead of using the website. The mobile experience needs urgent attention."
+
+Response 9: "Data quality and forecasting accuracy continue to be excellent. The platform is an essential tool for agricultural planning in East Africa."
+
+Response 10: "I cannot find the download section on my phone anymore. The hamburger menu is not intuitive. Most government officers in our region are not tech-savvy enough to navigate hidden menus."
+
+Response 11: "Loading speed on mobile is the number one issue. Please optimize for low-bandwidth connections."
+
+Response 12: "The desktop experience is wonderful. Clean design, easy navigation, fast loading. Wish the mobile version was the same quality."

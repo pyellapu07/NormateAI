@@ -1,0 +1,20 @@
+# Core
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-dotenv==1.0.1
+python-multipart==0.0.19
+
+# Data processing
+pandas==2.2.3
+openpyxl==3.1.5
+numpy>=1.26.0
+scikit-learn==1.6.0
+
+# NLP — sentiment analysis
+vaderSentiment==3.3.2
+
+# Claude API
+anthropic==0.40.0
+
+# Database (Phase 4)
+# supabase==2.11.0
