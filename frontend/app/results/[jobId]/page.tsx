@@ -8,6 +8,7 @@ import {
   Download,
   AlertTriangle,
   RefreshCw,
+  MessageCircle,
 } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -20,6 +21,10 @@ import {
   ABTestCard,
   MetricsCard,
 } from "@/components/InsightCard";
+import FinancialImpactCard from "@/components/FinancialImpactCard";
+import RecommendedQuestions from "@/components/RecommendedQuestions";
+import PerspectiveToggle, { type Perspective } from "@/components/PerspectiveToggle";
+import ChatSidebar from "@/components/ChatSidebar";
 import { getResults } from "@/lib/api";
 import type { AnalysisResult } from "@/lib/utils";
 
@@ -36,30 +41,30 @@ export default function ResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [pollCount, setPollCount] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [perspective, setPerspective] = useState<Perspective>("pm");
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInitialQuestion, setChatInitialQuestion] = useState<string | undefined>();
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;
     setIsExporting(true);
 
     try {
-      // Small delay to ensure any hover states or UI jitters settle
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const element = reportRef.current;
-      
-      // Capture the canvas with specific overrides for PDF aesthetics
+
       const canvas = await html2canvas(element, {
-        scale: 2, 
+        scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#F8FAFC', // Slightly cleaner off-white
-        windowWidth: 1200, // Forces a consistent desktop-like width for the PDF layout
+        backgroundColor: '#F8FAFC',
+        windowWidth: 1200,
         onclone: (clonedDoc) => {
-          // Find the element in the cloned document and add extra padding for the PDF
           const el = clonedDoc.getElementById("results-container");
           if (el) {
             el.style.padding = "40px";
-            el.style.gap = "32px"; // Increases spacing between cards
+            el.style.gap = "32px";
           }
         }
       });
@@ -73,21 +78,19 @@ export default function ResultsPage() {
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const margin = 10; // 10mm margin for a professional look
+
+      const margin = 10;
       const contentWidth = pdfWidth - (margin * 2);
-      
+
       const imgProps = pdf.getImageProperties(imgData);
       const imgRenderHeight = (imgProps.height * contentWidth) / imgProps.width;
 
       let heightLeft = imgRenderHeight;
-      let position = margin; // Start with the margin at the top
+      let position = margin;
 
-      // Page 1
       pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, imgRenderHeight, undefined, 'FAST');
       heightLeft -= (pdfHeight - margin * 2);
 
-      // Subsequent Pages
       while (heightLeft > 0) {
         position = heightLeft - imgRenderHeight + margin;
         pdf.addPage();
@@ -143,6 +146,50 @@ export default function ResultsPage() {
     };
   }, [fetchResults]);
 
+  const handleQuestionClick = (question: string) => {
+    setChatInitialQuestion(question);
+    setChatOpen(true);
+  };
+
+  // Perspective-based card visibility — each role gets a meaningfully different view
+  const showFinancial = result?.financialImpact && (perspective === "cfo" || perspective === "pm");
+  const showABTests = perspective === "pm" || perspective === "designer";
+  const showMetrics = perspective === "pm" || perspective === "cfo";
+  const showQuantEvidence = perspective === "pm" || perspective === "cfo";
+  const showQualEvidence = perspective === "pm" || perspective === "designer";
+  const showRecommendedQuestions = result?.suggestedQuestions && result.suggestedQuestions.length > 0;
+
+  // Perspective-specific banner content
+  const perspectiveBanner = {
+    pm: {
+      title: "Product Manager View",
+      subtitle: "Full report — all evidence, actions, A/B tests, and metrics",
+      color: "bg-brand-blue/5 border-brand-blue/20 text-brand-blue",
+    },
+    cfo: {
+      title: "CFO / Finance View",
+      subtitle: "Revenue impact, quantitative evidence, metrics, and cost of inaction",
+      color: "bg-amber-50 border-amber-200 text-amber-800",
+    },
+    designer: {
+      title: "UX Designer View",
+      subtitle: "User quotes, qualitative themes, sentiment analysis, and A/B test ideas",
+      color: "bg-purple-50 border-purple-200 text-purple-800",
+    },
+  };
+
+  // Build report context for chat
+  const reportContext: Record<string, unknown> = result
+    ? {
+        problemSummary: result.problemSummary,
+        quantEvidence: result.quantEvidence,
+        qualEvidence: result.qualEvidence,
+        actions: result.actions,
+        abTests: result.abTests,
+        metrics: result.metrics,
+      }
+    : {};
+
   return (
     <div className="min-h-screen bg-surface">
       <Navbar />
@@ -179,7 +226,7 @@ export default function ResultsPage() {
         </div>
 
         {state === "loading" && (
-          <div className="flex flex-col items-center gap-4 py-32">
+          <div className="flex flex-col items-center gap-4 py-32 animate-fade-in">
             <Loader2 className="h-12 w-12 animate-spin text-brand-blue" />
             <div className="text-center">
               <p className="text-base font-medium text-ink">Synthesizing insights...</p>
@@ -194,14 +241,17 @@ export default function ResultsPage() {
         )}
 
         {state === "error" && (
-          <div className="flex flex-col items-center gap-4 py-32">
+          <div className="flex flex-col items-center gap-4 py-32 animate-fade-in">
             <div className="rounded-full bg-red-50 p-4">
-               <AlertTriangle className="h-10 w-10 text-red-500" />
+              <AlertTriangle className="h-10 w-10 text-red-500" />
             </div>
             <p className="text-lg font-semibold text-ink">Analysis failed to load</p>
-            <button 
-                onClick={() => window.location.reload()} 
-                className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50"
+            {error && (
+              <p className="text-sm text-ink-muted max-w-md text-center">{error}</p>
+            )}
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50"
             >
               <RefreshCw className="h-4 w-4" /> Try Again
             </button>
@@ -209,37 +259,116 @@ export default function ResultsPage() {
         )}
 
         {state === "ready" && result && (
-          <div 
-            ref={reportRef} 
-            id="results-container" 
-            className="flex flex-col gap-8 transition-all"
-          >
-            <div className="border-b border-slate-100 pb-8 text-center">
-               <h1 className="mb-2 text-2xl font-bold text-ink">Root Cause Analysis</h1>
-               <p className="font-mono text-[10px] uppercase tracking-widest text-ink-faint">
-                Report ID: {jobId} • {new Date(result.generatedAt).toLocaleDateString()}
-              </p>
+          <>
+            {/* Perspective Toggle — above the report */}
+            <div className="mb-8 animate-fade-in">
+              <PerspectiveToggle current={perspective} onChange={setPerspective} />
             </div>
 
-            <ProblemSummaryCard summary={result.problemSummary} />
-
-            <div className="grid gap-8 lg:grid-cols-2">
-              <QuantEvidenceCard items={result.quantEvidence} />
-              <QualEvidenceCard items={result.qualEvidence} />
+            {/* Perspective Banner */}
+            <div className={`mb-4 rounded-xl border px-5 py-3 text-sm font-medium animate-fade-in ${perspectiveBanner[perspective].color}`}>
+              <span className="font-bold">{perspectiveBanner[perspective].title}</span>
+              <span className="mx-2">·</span>
+              <span className="opacity-80">{perspectiveBanner[perspective].subtitle}</span>
             </div>
 
-            <ActionsCard actions={result.actions} />
+            <div
+              ref={reportRef}
+              id="results-container"
+              className="flex flex-col gap-8 transition-all"
+            >
+              {/* Header */}
+              <div className="border-b border-slate-100 pb-8 text-center animate-fade-in">
+                <h1 className="mb-2 font-display text-3xl font-bold text-ink sm:text-4xl">
+                  Root Cause Analysis
+                </h1>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-ink-faint">
+                  Report ID: {jobId} &middot; {new Date(result.generatedAt).toLocaleDateString()}
+                </p>
+              </div>
 
-            <div className="grid gap-8 lg:grid-cols-2">
-              <ABTestCard tests={result.abTests} />
-              <MetricsCard metrics={result.metrics} />
-            </div>
-            
-            {/* Minimalist Footer for PDF only */}
-            <div className="mt-12 hidden border-t border-slate-100 pt-8 text-center print:block">
+              {/* Problem Summary — always visible */}
+              <div className="stagger-1 animate-slide-up">
+                <ProblemSummaryCard summary={result.problemSummary} />
+              </div>
+
+              {/* Financial Impact — CFO + PM perspectives */}
+              {showFinancial && (
+                <div className="stagger-2 animate-slide-up">
+                  <FinancialImpactCard impact={result.financialImpact!} />
+                </div>
+              )}
+
+              {/* Evidence Cards */}
+              <div className="grid gap-8 lg:grid-cols-2">
+                {showQuantEvidence && (
+                  <div className="stagger-2 animate-slide-up">
+                    <QuantEvidenceCard items={result.quantEvidence} />
+                  </div>
+                )}
+                {showQualEvidence && (
+                  <div className="stagger-3 animate-slide-up">
+                    <QualEvidenceCard items={result.qualEvidence} />
+                  </div>
+                )}
+              </div>
+
+              {/* Actions — always visible */}
+              <div className="stagger-3 animate-slide-up">
+                <ActionsCard actions={result.actions} />
+              </div>
+
+              {/* A/B Tests + Metrics */}
+              <div className="grid gap-8 lg:grid-cols-2">
+                {showABTests && (
+                  <div className="stagger-4 animate-slide-up">
+                    <ABTestCard tests={result.abTests} />
+                  </div>
+                )}
+                {showMetrics && (
+                  <div className="stagger-4 animate-slide-up">
+                    <MetricsCard metrics={result.metrics} />
+                  </div>
+                )}
+              </div>
+
+              {/* Recommended Questions */}
+              {showRecommendedQuestions && (
+                <div className="stagger-5 animate-slide-up">
+                  <RecommendedQuestions
+                    questions={result.suggestedQuestions}
+                    onQuestionClick={handleQuestionClick}
+                  />
+                </div>
+              )}
+
+              {/* Minimalist Footer for PDF only */}
+              <div className="mt-12 hidden border-t border-slate-100 pt-8 text-center print:block">
                 <p className="text-xs text-slate-400">Generated by Normate AI Insights Engine</p>
+              </div>
             </div>
-          </div>
+
+            {/* Floating Chat Button */}
+            <button
+              onClick={() => {
+                setChatInitialQuestion(undefined);
+                setChatOpen(true);
+              }}
+              className="fixed bottom-8 right-8 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-purple text-white shadow-lg shadow-brand-purple/25 transition-all hover:bg-brand-purple-dark hover:shadow-xl hover:shadow-brand-purple/30 active:scale-95"
+              title="Chat with this analysis"
+            >
+              <MessageCircle className="h-6 w-6" />
+            </button>
+
+            {/* Chat Sidebar */}
+            <ChatSidebar
+              jobId={jobId}
+              reportContext={reportContext}
+              isOpen={chatOpen}
+              onClose={() => setChatOpen(false)}
+              initialQuestion={chatInitialQuestion}
+            />
+          </>
         )}
       </main>
     </div>

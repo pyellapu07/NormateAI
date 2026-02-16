@@ -85,4 +85,26 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Staggered animation delays for card entrance */
+  .stagger-1 {
+    animation-delay: 100ms;
+    animation-fill-mode: both;
+  }
+  .stagger-2 {
+    animation-delay: 200ms;
+    animation-fill-mode: both;
+  }
+  .stagger-3 {
+    animation-delay: 300ms;
+    animation-fill-mode: both;
+  }
+  .stagger-4 {
+    animation-delay: 400ms;
+    animation-fill-mode: both;
+  }
+  .stagger-5 {
+    animation-delay: 500ms;
+    animation-fill-mode: both;
+  }
 }

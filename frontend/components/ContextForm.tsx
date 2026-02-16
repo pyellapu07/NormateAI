@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Calendar } from "lucide-react";
+import { ClipboardList, Calendar, DollarSign } from "lucide-react";
 import type { AnalysisContext } from "@/lib/utils";
 
 interface ContextFormProps {
@@ -9,7 +9,7 @@ interface ContextFormProps {
 }
 
 export default function ContextForm({ context, onChange }: ContextFormProps) {
-  const update = (field: keyof AnalysisContext, value: string) => {
+  const update = (field: keyof AnalysisContext, value: string | number | undefined) => {
     onChange({ ...context, [field]: value });
   };
 
@@ -62,24 +62,60 @@ export default function ContextForm({ context, onChange }: ContextFormProps) {
         />
       </div>
 
-      {/* Time Period (optional) */}
-      <div className="space-y-1.5">
-        <label
-          htmlFor="time-period"
-          className="flex items-center gap-1.5 text-sm font-medium text-ink"
-        >
-          <Calendar className="h-3.5 w-3.5 text-ink-muted" />
-          Time Period
-          <span className="text-xs font-normal text-ink-faint">(optional)</span>
-        </label>
-        <input
-          id="time-period"
-          type="text"
-          value={context.timePeriod || ""}
-          onChange={(e) => update("timePeriod", e.target.value)}
-          placeholder="e.g. Jan 2025 – Mar 2025"
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-colors focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
-        />
+      {/* Time Period + ARPU row */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Time Period (optional) */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor="time-period"
+            className="flex items-center gap-1.5 text-sm font-medium text-ink"
+          >
+            <Calendar className="h-3.5 w-3.5 text-ink-muted" />
+            Time Period
+            <span className="text-xs font-normal text-ink-faint">(optional)</span>
+          </label>
+          <input
+            id="time-period"
+            type="text"
+            value={context.timePeriod || ""}
+            onChange={(e) => update("timePeriod", e.target.value)}
+            placeholder="e.g. Jan 2025 – Mar 2025"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-colors focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+          />
+        </div>
+
+        {/* ARPU (optional) */}
+        <div className="space-y-1.5">
+          <label
+            htmlFor="arpu"
+            className="flex items-center gap-1.5 text-sm font-medium text-ink"
+          >
+            <DollarSign className="h-3.5 w-3.5 text-ink-muted" />
+            ARPU
+            <span className="text-xs font-normal text-ink-faint">(optional)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-ink-faint">
+              $
+            </span>
+            <input
+              id="arpu"
+              type="number"
+              step="0.01"
+              min="0"
+              value={context.arpu ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                update("arpu", val ? parseFloat(val) : undefined);
+              }}
+              placeholder="e.g. 4.99"
+              className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-colors focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+            />
+          </div>
+          <p className="text-xs text-ink-faint">
+            Enables financial impact calculations
+          </p>
+        </div>
       </div>
     </div>
   );

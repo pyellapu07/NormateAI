@@ -10,6 +10,7 @@ import {
   Clock,
   Shield,
   Layers,
+  BookOpen,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FileUpload from "@/components/FileUpload";
@@ -48,7 +49,6 @@ export default function HomePage() {
       const job = await submitAnalysis(quantFiles, qualFiles, context);
       setSubmitState("success");
 
-      // Navigate to results after a short delay for the success animation
       setTimeout(() => {
         router.push(`/results/${job.jobId}`);
       }, 800);
@@ -70,17 +70,17 @@ export default function HomePage() {
         <div className="absolute inset-0 grid-pattern" />
 
         {/* Gradient blobs */}
-        <div className="pointer-events-none absolute -top-32 right-0 h-80 w-80 rounded-full bg-brand-blue/5 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-20 left-10 h-60 w-60 rounded-full bg-brand-purple/5 blur-3xl" />
+        <div className="pointer-events-none absolute -top-32 right-0 h-96 w-96 rounded-full bg-brand-blue/5 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 left-10 h-72 w-72 rounded-full bg-brand-purple/5 blur-3xl" />
 
-        <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20 text-center">
-          <div className="mx-auto max-w-2xl">
-            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-semibold text-brand-blue">
-              <Sparkles className="h-3 w-3" />
+        <div className="relative mx-auto max-w-6xl px-6 py-20 sm:py-24 text-center">
+          <div className="mx-auto max-w-3xl animate-fade-in">
+            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-brand-blue/10 px-4 py-1.5 text-xs font-semibold text-brand-blue">
+              <Sparkles className="h-3.5 w-3.5" />
               AI-Powered Research Synthesis
             </div>
 
-            <h1 className="font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+            <h1 className="font-display text-5xl font-bold tracking-tight text-ink sm:text-6xl">
               Fuse your research data.
               <br />
               <span className="bg-gradient-to-r from-brand-blue via-brand-purple to-brand-amber bg-clip-text text-transparent">
@@ -88,7 +88,7 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <p className="mt-5 text-lg leading-relaxed text-ink-muted text-balance">
+            <p className="mt-6 text-lg leading-relaxed text-ink-muted text-balance sm:text-xl">
               Upload your quantitative metrics and qualitative feedback. Normate AI
               triangulates the data and delivers ranked, actionable UX
               recommendations — backed by statistical evidence and user quotes.
@@ -96,15 +96,17 @@ export default function HomePage() {
           </div>
 
           {/* Value props */}
-          <div className="mx-auto mt-10 grid max-w-xl grid-cols-3 gap-6">
+          <div className="mx-auto mt-12 grid max-w-xl grid-cols-3 gap-8 animate-slide-up" style={{ animationDelay: "200ms" }}>
             {[
               { icon: Clock, label: "60-second analysis" },
               { icon: Layers, label: "Multi-source fusion" },
               { icon: Shield, label: "Evidence-backed" },
             ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex flex-col items-center gap-1.5">
-                <Icon className="h-5 w-5 text-brand-blue/60" />
-                <span className="text-xs font-medium text-ink-muted">
+              <div key={label} className="flex flex-col items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10">
+                  <Icon className="h-5 w-5 text-brand-blue" />
+                </div>
+                <span className="text-sm font-medium text-ink-muted">
                   {label}
                 </span>
               </div>
@@ -114,14 +116,14 @@ export default function HomePage() {
       </section>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-4xl px-6 py-12">
+      <main className="mx-auto max-w-4xl px-6 py-14">
         {/* Step indicator */}
-        <div className="mb-8 flex items-center justify-center gap-8 text-xs font-medium">
+        <div className="mb-10 flex items-center justify-center gap-8 text-xs font-medium">
           {["Upload Data", "Add Context", "Analyze"].map((step, i) => (
             <div key={step} className="flex items-center gap-2">
               <span
                 className={cn(
-                  "flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold",
+                  "flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold transition-colors",
                   i === 0
                     ? "bg-brand-blue text-white"
                     : i === 1
@@ -175,7 +177,7 @@ export default function HomePage() {
               onClick={handleAnalyze}
               disabled={!canSubmit || submitState === "submitting"}
               className={cn(
-                "group relative flex items-center gap-2.5 rounded-xl px-8 py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-200",
+                "group relative flex items-center gap-2.5 rounded-xl px-10 py-4 text-base font-semibold text-white shadow-lg transition-all duration-200",
                 canSubmit && submitState === "idle"
                   ? "bg-brand-blue hover:bg-brand-blue-dark hover:shadow-xl hover:shadow-brand-blue/25 active:scale-[0.98]"
                   : submitState === "submitting"
@@ -187,28 +189,28 @@ export default function HomePage() {
             >
               {submitState === "idle" && (
                 <>
-                  <Sparkles className="h-4 w-4" />
+                  <Sparkles className="h-5 w-5" />
                   Analyze Data
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                 </>
               )}
               {submitState === "submitting" && (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                   Uploading & Processing...
                 </>
               )}
               {submitState === "success" && (
                 <>
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-5 w-5" />
                   Redirecting to Results...
                 </>
               )}
               {submitState === "error" && (
                 <>
-                  <Sparkles className="h-4 w-4" />
+                  <Sparkles className="h-5 w-5" />
                   Retry Analysis
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-5 w-5" />
                 </>
               )}
             </button>
@@ -228,11 +230,83 @@ export default function HomePage() {
         </div>
       </main>
 
+      {/* About Section */}
+      <section className="border-t border-slate-100 bg-white py-20">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="mb-12 text-center">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+              What is Normate AI?
+            </h2>
+            <p className="mt-3 text-lg text-ink-muted">
+              Your strategic partner for UX research synthesis
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-surface p-6 transition-all hover:shadow-md">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10">
+                <Layers className="h-6 w-6 text-brand-blue" />
+              </div>
+              <h3 className="mb-2 font-display text-xl font-bold text-ink">
+                Mixed-Methods Fusion
+              </h3>
+              <p className="text-sm leading-relaxed text-ink-muted">
+                Triangulates quantitative metrics (CSV/Excel analytics) with
+                qualitative feedback (interviews, support tickets) to uncover
+                deep, non-obvious insights. No more siloed data.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-surface p-6 transition-all hover:shadow-md">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-purple/10">
+                <Sparkles className="h-6 w-6 text-brand-purple" />
+              </div>
+              <h3 className="mb-2 font-display text-xl font-bold text-ink">
+                AI Root Cause Analysis
+              </h3>
+              <p className="text-sm leading-relaxed text-ink-muted">
+                Powered by Claude (Anthropic), goes beyond surface correlation.
+                Identifies root causes, suggests specific UX solutions, and
+                calculates business impact — all in under 60 seconds.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-surface p-6 transition-all hover:shadow-md">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-amber/10">
+                <Shield className="h-6 w-6 text-brand-amber" />
+              </div>
+              <h3 className="mb-2 font-display text-xl font-bold text-ink">
+                Evidence-Backed Actions
+              </h3>
+              <p className="text-sm leading-relaxed text-ink-muted">
+                Every recommendation cites specific data: sentiment scores, metric
+                changes, user quotes. No generic advice — only actionable,
+                prioritized solutions ranked by impact.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-surface p-6 transition-all hover:shadow-md">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+                <BookOpen className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="mb-2 font-display text-xl font-bold text-ink">
+                Named After Don Norman
+              </h3>
+              <p className="text-sm leading-relaxed text-ink-muted">
+                Don Norman, author of &ldquo;The Design of Everyday Things&rdquo; and pioneer
+                of user-centered design, inspired our mission: empathy, evidence,
+                and actionable insight. Normate AI carries his legacy forward.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="border-t border-slate-100 py-8 text-center text-xs text-ink-faint">
+      <footer className="border-t border-slate-100 py-10 text-center text-xs text-ink-faint">
         Normate AI — named after Don Norman, father of user experience.
         <br />
-        Built by Pete · UMD Xylem Institute
+        Built by Pete &middot; UMD Xylem Institute
       </footer>
     </div>
   );

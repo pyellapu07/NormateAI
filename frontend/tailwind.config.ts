@@ -40,6 +40,7 @@ const config: Config = {
         "slide-up": "slideUp 0.5s ease-out forwards",
         "pulse-soft": "pulseSoft 2s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
+        "slide-in-right": "slideInRight 0.3s ease-out forwards",
       },
       keyframes: {
         fadeIn: {
@@ -57,6 +58,10 @@ const config: Config = {
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
+        },
+        slideInRight: {
+          "0%": { opacity: "0", transform: "translateX(100%)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
         },
       },
     },

@@ -18,12 +18,22 @@ export interface AnalysisContext {
   researchQuestion: string;
   productDescription: string;
   timePeriod?: string;
+  arpu?: number;
 }
 
 export interface AnalysisJob {
   jobId: string;
   status: "pending" | "processing" | "completed" | "failed";
   createdAt: string;
+}
+
+export interface HistoryJob {
+  job_id: string;
+  status: string;
+  research_question: string;
+  product_description: string;
+  created_at: string;
+  completed_at?: string;
 }
 
 export interface QuantEvidence {
@@ -63,6 +73,12 @@ export interface TrackedMetric {
   target: string;
 }
 
+export interface FinancialImpact {
+  lostRevenue: string;
+  costOfInaction: string;
+  recoveryPotential: string;
+}
+
 export interface AnalysisResult {
   jobId: string;
   status: "completed" | "failed";
@@ -72,6 +88,8 @@ export interface AnalysisResult {
   actions: RecommendedAction[];
   abTests: ABTest[];
   metrics: TrackedMetric[];
+  suggestedQuestions: string[];
+  financialImpact?: FinancialImpact | null;
   generatedAt: string;
 }
 
@@ -101,5 +119,19 @@ export function impactBadgeColor(impact: string): string {
       return "bg-emerald-100 text-emerald-700 border-emerald-200";
     default:
       return "bg-slate-100 text-slate-600 border-slate-200";
+  }
+}
+
+export function formatDate(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return dateStr;
   }
 }

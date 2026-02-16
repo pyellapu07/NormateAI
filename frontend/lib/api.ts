@@ -1,4 +1,4 @@
-import type { AnalysisContext, AnalysisJob, AnalysisResult } from "./utils";
+import type { AnalysisContext, AnalysisJob, AnalysisResult, HistoryJob } from "./utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -27,6 +27,9 @@ export async function submitAnalysis(
   formData.append("product_description", context.productDescription);
   if (context.timePeriod) {
     formData.append("time_period", context.timePeriod);
+  }
+  if (context.arpu !== undefined && context.arpu !== null) {
+    formData.append("arpu", String(context.arpu));
   }
 
   const res = await fetch(`${API_BASE}/api/analyze`, {
@@ -86,6 +89,53 @@ export async function pollForResults(
   }
 
   throw new ApiError("Analysis timed out. Please try again.", 408);
+}
+
+// ── History ─────────────────────────────────────────────────
+
+export async function getHistory(): Promise<{ jobs: HistoryJob[] }> {
+  const res = await fetch(`${API_BASE}/api/history`);
+  if (!res.ok) {
+    throw new ApiError("Failed to fetch history", res.status);
+  }
+  return res.json();
+}
+
+export async function deleteHistoryItem(jobId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/history/${jobId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    throw new ApiError("Failed to delete report", res.status);
+  }
+}
+
+export async function wipeHistory(): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/history`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    throw new ApiError("Failed to wipe history", res.status);
+  }
+}
+
+// ── Chat ────────────────────────────────────────────────────
+
+export async function chatWithAnalysis(
+  jobId: string,
+  question: string,
+  reportContext: Record<string, unknown>
+): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/api/chat/${jobId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question, report_context: reportContext }),
+  });
+
+  if (!res.ok) {
+    throw new ApiError("Chat request failed", res.status);
+  }
+  return res.json();
 }
 
 // ── Health Check ────────────────────────────────────────────

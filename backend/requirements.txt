@@ -16,5 +16,5 @@ vaderSentiment==3.3.2
 # Claude API
 anthropic==0.40.0
 
-# Database (Phase 4)
-# supabase==2.11.0
+# Database
+supabase==2.11.0

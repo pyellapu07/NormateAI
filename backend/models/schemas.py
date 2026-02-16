@@ -52,6 +52,7 @@ class AnalysisContext(BaseModel):
     research_question: str = Field(..., min_length=10)
     product_description: str = Field(..., min_length=5)
     time_period: Optional[str] = None
+    arpu: Optional[float] = None
 
 
 # ── Response Models ──────────────────────────────────────────

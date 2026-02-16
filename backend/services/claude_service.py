@@ -67,6 +67,22 @@ def _build_prompt(
         "summary": fusion_results.get("summary", {}),
     }
 
+    # ARPU context for financial impact
+    arpu = context.get("arpu")
+    arpu_section = ""
+    financial_impact_instruction = ""
+    if arpu:
+        arpu_section = f"\nARPU (Average Revenue Per User): ${arpu:.2f}"
+        financial_impact_instruction = f"""
+  "financialImpact": {{
+    "lostRevenue": "Calculated revenue loss. e.g. 'With {arpu:.2f} ARPU and X% churn, estimated loss is $Y/month'",
+    "costOfInaction": "Projected loss over 3-6 months if problems persist. e.g. '$240K by Q3'",
+    "recoveryPotential": "Estimated revenue recovery if top action is implemented. e.g. '$80K-$120K/quarter'"
+  }},"""
+    else:
+        financial_impact_instruction = """
+  "financialImpact": null,"""
+
     return f"""You are a world-class UX researcher with 15+ years of experience at companies like Google, Apple, and IDEO. You specialize in mixed-methods research synthesis — triangulating quantitative analytics with qualitative user feedback to uncover deep, non-obvious insights.
 
 You are analyzing data for a real product. Your recommendations MUST be:
@@ -79,7 +95,7 @@ You are analyzing data for a real product. Your recommendations MUST be:
 CONTEXT:
 Product: {context.get('product_description', 'Not specified')}
 Research Question: {context.get('research_question', 'Not specified')}
-Time Period: {context.get('time_period', 'Not specified')}
+Time Period: {context.get('time_period', 'Not specified')}{arpu_section}
 
 ═══════════════════════════════════════════════════════
 QUANTITATIVE FINDINGS (Statistical Analysis)
@@ -156,6 +172,15 @@ Respond with ONLY a JSON object (no markdown, no backticks, no explanation outsi
       "current": "Current value from the data",
       "target": "Realistic target with timeframe (e.g., '<45% within 4 weeks')"
     }}
+  ],
+{financial_impact_instruction}
+
+  "suggestedQuestions": [
+    "A specific, insightful follow-up question that digs deeper into the root cause",
+    "A question exploring a counterintuitive pattern or surprising finding",
+    "A question about implementation priorities or resource allocation",
+    "A question comparing segments or time periods for richer context",
+    "A question about long-term strategic implications of the findings"
   ]
 }}
 
@@ -163,6 +188,8 @@ CRITICAL RULES:
 - Generate 3-5 actions, ranked by impact. Each action MUST cite specific evidence from both quant AND qual data.
 - Generate 1-3 A/B tests. Each MUST have specific, testable hypotheses.
 - Generate 4-6 metrics to track with realistic targets.
+- Generate exactly 3-5 suggestedQuestions — each must be specific to THIS data (not generic).
+- {"Generate financialImpact with specific dollar calculations based on the ARPU of $" + f"{arpu:.2f}" + "." if arpu else "Set financialImpact to null (no ARPU provided)."}
 - Every quote in qualEvidence MUST come from the actual qualitative data provided above.
 - Every number MUST come from the actual quantitative data provided above.
 - DO NOT make up data. If a metric isn't in the data, don't reference it.
@@ -175,8 +202,8 @@ CRITICAL RULES:
 # ── Claude API Call ──────────────────────────────────────────
 
 
-async def _call_claude(prompt: str) -> Optional[dict]:
-    """Call the Claude API and parse the JSON response."""
+async def _call_claude(prompt: str, max_tokens: int = 4096, temperature: float = 0.3) -> Optional[str]:
+    """Call the Claude API and return the raw text response."""
     api_key = os.getenv("ANTHROPIC_API_KEY")
 
     if not api_key:
@@ -194,8 +221,8 @@ async def _call_claude(prompt: str) -> Optional[dict]:
 
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=4096,
-            temperature=0.3,  # Low temp for consistent, grounded output
+            max_tokens=max_tokens,
+            temperature=temperature,
             messages=[{"role": "user", "content": prompt}],
         )
 
@@ -205,25 +232,68 @@ async def _call_claude(prompt: str) -> Optional[dict]:
             if hasattr(block, "text"):
                 text += block.text
 
-        # Parse JSON — Claude sometimes wraps in ```json
-        text = text.strip()
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
-        if text.endswith("```"):
-            text = text[:-3]
-        text = text.strip()
+        return text.strip()
 
-        result = json.loads(text)
-        logger.info("Claude API response parsed successfully")
-        return result
-
-    except json.JSONDecodeError as e:
-        logger.error("Failed to parse Claude response as JSON: %s", e)
-        logger.debug("Raw response: %s", text[:500] if text else "empty")
-        return None
     except Exception as e:
         logger.error("Claude API call failed: %s", e)
         return None
+
+
+def _parse_json_response(text: str) -> Optional[dict]:
+    """Parse a JSON response from Claude, handling markdown wrapping."""
+    if not text:
+        return None
+
+    try:
+        # Claude sometimes wraps in ```json
+        cleaned = text.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+        cleaned = cleaned.strip()
+
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        logger.error("Failed to parse Claude response as JSON: %s", e)
+        logger.debug("Raw response: %s", text[:500])
+        return None
+
+
+# ── Chat Response ────────────────────────────────────────────
+
+
+async def chat_response(question: str, report_context: dict) -> str:
+    """Answer a follow-up question about a completed report."""
+
+    prompt = f"""You are a UX research assistant helping a user explore their analysis report.
+
+REPORT DATA:
+Problem Summary: {report_context.get('problemSummary', 'N/A')}
+
+Key Metrics: {json.dumps(report_context.get('quantEvidence', [])[:6], indent=2, default=str)}
+
+Key Themes: {json.dumps(report_context.get('qualEvidence', [])[:5], indent=2, default=str)}
+
+Top Actions: {json.dumps([a.get('title', '') for a in report_context.get('actions', [])[:4]], default=str)}
+
+USER QUESTION:
+{question}
+
+Provide a concise, specific answer grounded in the report data above. If the question goes beyond the data, explain what additional analysis would help. Keep your answer to 2-4 paragraphs. Do NOT wrap in JSON — respond in plain text."""
+
+    text = await _call_claude(prompt, max_tokens=1024, temperature=0.4)
+
+    if text:
+        return text
+
+    # Fallback
+    return (
+        "Based on the report findings, this is an interesting question. "
+        "The data shows correlations between the quantitative metrics and qualitative themes, "
+        "but a deeper dive into specific user segments or time periods would give us more clarity. "
+        "Consider running targeted follow-up analysis on the segments highlighted in the report."
+    )
 
 
 # ── Fallback Rule-Based Generator ────────────────────────────
@@ -580,6 +650,49 @@ def _generate_fallback(
             "target": target_str,
         })
 
+    # ── Suggested Questions ──────────────────────────────────
+
+    suggested_questions = []
+    if confirmed_problems:
+        cp = confirmed_problems[0]
+        suggested_questions.append(
+            f"What specific user flows are most affected by the '{cp['topic']}' issue?"
+        )
+    if segment_insights:
+        seg = segment_insights[0]
+        suggested_questions.append(
+            f"Are there technical differences between {seg['worst_segment']} and {seg['best_segment']} that could explain the gap?"
+        )
+    if negative_topics:
+        nt = negative_topics[0]
+        suggested_questions.append(
+            f"How has the '{nt['label']}' sentiment changed over time — is it getting worse?"
+        )
+    if positive_topics:
+        pt = positive_topics[0]
+        suggested_questions.append(
+            f"What makes the '{pt['label']}' experience successful, and can we replicate it?"
+        )
+    suggested_questions.append(
+        "Which of the recommended actions should we prioritize given our current resources?"
+    )
+
+    # ── Financial Impact ─────────────────────────────────────
+
+    financial_impact = None
+    arpu = context.get("arpu")
+    if arpu and declining:
+        total_decline_pct = sum(abs(m.get("pct_change", 0)) for m in declining[:3]) / max(len(declining[:3]), 1)
+        monthly_loss = arpu * total_decline_pct * 100  # rough estimate
+        quarterly_loss = monthly_loss * 3
+        recovery = monthly_loss * 0.5
+
+        financial_impact = {
+            "lostRevenue": f"~${monthly_loss:,.0f}/month estimated based on {total_decline_pct:.1f}% avg decline",
+            "costOfInaction": f"~${quarterly_loss:,.0f} over next quarter if trends continue",
+            "recoveryPotential": f"~${recovery:,.0f}/month with top recommended action",
+        }
+
     return {
         "problemSummary": problem_summary,
         "quantEvidence": quant_evidence,
@@ -587,6 +700,8 @@ def _generate_fallback(
         "actions": actions,
         "abTests": ab_tests,
         "metrics": tracked,
+        "suggestedQuestions": suggested_questions[:5],
+        "financialImpact": financial_impact,
     }
 
 
@@ -614,12 +729,16 @@ async def generate_recommendations(
         logger.info("Generating recommendations via Claude API...")
         prompt = _build_prompt(context, quant_results, qual_results, fusion_results)
 
-        result = await _call_claude(prompt)
+        text = await _call_claude(prompt)
+        result = _parse_json_response(text) if text else None
 
         if result:
             # Validate the response has required fields
             required = ["problemSummary", "quantEvidence", "qualEvidence", "actions"]
             if all(k in result for k in required):
+                # Ensure new fields exist (Claude might miss them)
+                result.setdefault("suggestedQuestions", [])
+                result.setdefault("financialImpact", None)
                 logger.info("Using Claude-generated recommendations (%d actions)", len(result.get("actions", [])))
                 return result
             else:
